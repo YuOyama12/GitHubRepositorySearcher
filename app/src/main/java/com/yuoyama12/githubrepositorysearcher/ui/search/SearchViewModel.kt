@@ -1,6 +1,8 @@
 package com.yuoyama12.githubrepositorysearcher.ui.search
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yuoyama12.githubrepositorysearcher.data.Repos
@@ -18,6 +20,9 @@ class SearchViewModel @Inject constructor(
     private val githubService: GitHubService
 ): ViewModel() {
 
+    private var _repos = MutableLiveData(Repos())
+    val repos: LiveData<Repos> get() = _repos
+
     fun loadRepos(query: String) {
         viewModelScope.launch {
             githubService.fetchRepos(query).enqueue(
@@ -25,7 +30,7 @@ class SearchViewModel @Inject constructor(
                     override fun onResponse(call: Call<Repos>, response: Response<Repos>) {
                     if (response.isSuccessful) {
                         response.body()?.let { repos ->
-
+                            _repos.value = repos
                         }
                     } else {
                         val msg = "HTTP error. HTTP status code: ${response.code()}"

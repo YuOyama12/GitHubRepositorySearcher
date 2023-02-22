@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">GitHubRepositorySearch</string>
+    <string name="repo_owner_header">Owner</string>
+    <string name="repo_title_header">Title</string>
 </resources>
