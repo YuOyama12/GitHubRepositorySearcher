@@ -11,11 +11,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuoyama12.githubrepositorysearcher.R
 import com.yuoyama12.githubrepositorysearcher.ui.theme.GitHubRepositorySearcherTheme
 
 @Composable
 fun SearchScreen() {
+    val viewModel: SearchViewModel = viewModel()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -28,8 +31,8 @@ fun SearchScreen() {
                 }
             )
         }
-    ) { _ ->
-        var repositoryName by remember { mutableStateOf("") }
+    ) { padding ->
+        var query by remember { mutableStateOf("") }
 
         Column(modifier = Modifier
             .fillMaxWidth()
@@ -37,13 +40,13 @@ fun SearchScreen() {
         ) {
             Row {
                 OutlinedTextField(
-                    value = repositoryName,
-                    onValueChange = { repositoryName = it },
+                    value = query,
+                    onValueChange = { query = it },
                     modifier = Modifier.padding(end = 2.dp)
                 )
 
                 Button(
-                    onClick = { },
+                    onClick = { viewModel.loadRepos(query) },
                     modifier = Modifier.align(CenterVertically)
                 ) {
                     Icon(
