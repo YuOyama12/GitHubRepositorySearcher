@@ -1,5 +1,8 @@
 package com.yuoyama12.githubrepositorysearcher.ui.search
 
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +15,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -20,9 +24,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.squareup.picasso.Picasso
 import com.yuoyama12.githubrepositorysearcher.R
 import com.yuoyama12.githubrepositorysearcher.data.Repos
 import com.yuoyama12.githubrepositorysearcher.ui.theme.GitHubRepositorySearcherTheme
+import com.squareup.picasso.Target
 
 @Composable
 fun SearchScreen() {
@@ -78,7 +84,9 @@ fun SearchScreen() {
                         modifier = Modifier.padding(horizontal = 4.dp)
                     ) {
                         Row {
-                            Column {
+                            Column(
+                                modifier = Modifier.weight(0.75f)
+                            ) {
                                 HeaderAndBody(
                                     header = stringResource(R.string.repo_owner_header),
                                     body = item.owner.name
@@ -103,6 +111,13 @@ fun SearchScreen() {
                                     )
                                 }
                             }
+
+                            NetworkImage(
+                                url = item.owner.avatarUrl,
+                                modifier = Modifier
+                                    .weight(0.25f)
+                                    .size(75.dp)
+                            )
                         }
 
                         Text(
@@ -114,12 +129,11 @@ fun SearchScreen() {
                         Spacer(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(0.4.dp)
+                                .height(0.5.dp)
                                 .background(Color.LightGray)
                         )
 
                     }
-
                 }
             }
         }
@@ -134,7 +148,9 @@ fun HeaderAndBody(header: String, body: String) {
         Text(
             text = header,
             modifier = Modifier.padding(end = 8.dp),
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
 
         Text(text = body)
@@ -154,6 +170,55 @@ fun IconAndBody(icon: Painter, body: String) {
         Text(text = body)
     }
 }
+
+@Composable
+fun NetworkImage(
+    url: String,
+    modifier: Modifier = Modifier
+) {
+
+    var image by remember { mutableStateOf<Bitmap?>(null) }
+    var drawable by remember { mutableStateOf<Drawable?>(null) }
+
+    DisposableEffect(url) {
+        val picasso = Picasso.get()
+
+        val target = object : Target {
+            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                drawable = placeHolderDrawable
+            }
+
+            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+                drawable = errorDrawable
+            }
+
+            override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                image = bitmap
+            }
+        }
+
+        picasso.load(url).error(R.drawable.ic_error_24).into(target)
+
+        onDispose {
+            image = null
+            drawable = null
+            picasso.cancelRequest(target)
+        }
+    }
+
+    if (image != null) {
+        Image(
+            bitmap = image!!.asImageBitmap(),
+            modifier = modifier,
+            contentDescription = null
+        )
+    } else if (drawable != null) {
+        Image(
+            painter = painterResource(R.drawable.ic_error_24),
+            contentDescription = null)
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
