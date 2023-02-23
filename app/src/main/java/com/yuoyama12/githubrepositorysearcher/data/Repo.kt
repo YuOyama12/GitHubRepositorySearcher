@@ -9,7 +9,7 @@ data class Repo(
     @Json(name = "name") val name: String,
     @Json(name = "full_name") val fullName: String = "",
     @Json(name = "owner") val owner: Owner = Owner(),
+    @Json(name = "html_url") val htmlUrl: String = "",
     @Json(name = "stargazers_count") val stargazersCount: String = "",
-    @Json(name = "watchers_count") val watchersCount: String = "",
-    @Json(name = "html_url") val htmlUrl: String = ""
+    @Json(name = "watchers_count") val watchersCount: String = ""
 )
