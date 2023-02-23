@@ -8,11 +8,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +25,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,6 +35,8 @@ import com.yuoyama12.githubrepositorysearcher.R
 import com.yuoyama12.githubrepositorysearcher.data.Repos
 import com.yuoyama12.githubrepositorysearcher.ui.theme.GitHubRepositorySearcherTheme
 import com.squareup.picasso.Target
+import com.yuoyama12.githubrepositorysearcher.component.NoDataImage
+import com.yuoyama12.githubrepositorysearcher.component.OnSearchIndicator
 
 @Composable
 fun SearchScreen() {
@@ -49,101 +55,67 @@ fun SearchScreen() {
             )
         }
     ) { padding ->
-        val uriHandler = LocalUriHandler.current
 
         var query by remember { mutableStateOf("") }
         val repos by viewModel.repos.observeAsState(Repos())
+        val onSearch by viewModel.onSearch.observeAsState(false)
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp)
-        ) {
-            Row {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    modifier = Modifier.padding(end = 2.dp)
-                )
+        Box(modifier = Modifier.padding(padding)){
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
+            ) {
+                Row {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier
+                            .padding(end = 2.dp)
+                            .weight(0.8f),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                viewModel.loadRepos(query)
+                                query = ""
+                            }
+                        )
+                    )
 
-                Button(
-                    onClick = {
-                        viewModel.loadRepos(query)
-                        query = ""
-                    },
-                    modifier = Modifier.align(CenterVertically)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null
+                    Button(
+                        onClick = {
+                            viewModel.loadRepos(query)
+                            query = ""
+                        },
+                        modifier = Modifier
+                            .align(CenterVertically)
+                            .weight(0.2f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    }
+                }
+
+                if (repos.items.isEmpty()) {
+                    NoDataImage(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .align(Alignment.CenterHorizontally),
+                        textBelowImage = stringResource(R.string.no_data_image_description)
+                    )
+                } else {
+                    RepositoryList(
+                        modifier = Modifier.fillMaxSize(),
+                        repos = repos
                     )
                 }
             }
+        }
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(repos.items) { item ->
-                    Column(
-                        modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .clickable {
-                                uriHandler.openUri(item.htmlUrl)
-                            }
-                    ) {
-                        Row {
-                            Column(
-                                modifier = Modifier.weight(0.75f)
-                            ) {
-                                HeaderAndBody(
-                                    header = stringResource(R.string.repo_owner_header),
-                                    body = item.owner.name
-                                )
-
-                                HeaderAndBody(
-                                    header = stringResource(R.string.repo_title_header),
-                                    body = item.name
-                                )
-
-                                Row {
-                                    IconAndBody(
-                                        icon = painterResource(R.drawable.ic_watch_count_24),
-                                        body = item.watchersCount
-                                    )
-
-                                    Spacer(modifier = Modifier.padding(horizontal = 5.dp))
-
-                                    IconAndBody(
-                                        icon = painterResource(R.drawable.ic_star_count_24),
-                                        body = item.stargazersCount
-                                    )
-                                }
-                            }
-
-                            NetworkImage(
-                                url = item.owner.avatarUrl,
-                                modifier = Modifier
-                                    .weight(0.25f)
-                                    .size(75.dp)
-                            )
-                        }
-
-                        Text(
-                            text = item.htmlUrl,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Spacer(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(0.5.dp)
-                                .background(Color.LightGray)
-                        )
-
-                    }
-                }
-            }
+        if (onSearch) {
+            OnSearchIndicator(modifier = Modifier.fillMaxSize())
         }
     }
 }
@@ -176,6 +148,79 @@ fun IconAndBody(icon: Painter, body: String) {
         )
 
         Text(text = body)
+    }
+}
+
+@Composable
+fun RepositoryList(
+    modifier: Modifier = Modifier,
+    repos: Repos
+) {
+    val uriHandler = LocalUriHandler.current
+
+    LazyColumn(
+        modifier = modifier
+    ) {
+        items(repos.items) { item ->
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .clickable {
+                        uriHandler.openUri(item.htmlUrl)
+                    }
+            ) {
+                Row {
+                    Column(
+                        modifier = Modifier.weight(0.75f)
+                    ) {
+                        HeaderAndBody(
+                            header = stringResource(R.string.repo_owner_header),
+                            body = item.owner.name
+                        )
+
+                        HeaderAndBody(
+                            header = stringResource(R.string.repo_title_header),
+                            body = item.name
+                        )
+
+                        Row {
+                            IconAndBody(
+                                icon = painterResource(R.drawable.ic_watch_count_24),
+                                body = item.watchersCount
+                            )
+
+                            Spacer(modifier = Modifier.padding(horizontal = 5.dp))
+
+                            IconAndBody(
+                                icon = painterResource(R.drawable.ic_star_count_24),
+                                body = item.stargazersCount
+                            )
+                        }
+                    }
+
+                    NetworkImage(
+                        url = item.owner.avatarUrl,
+                        modifier = Modifier
+                            .weight(0.25f)
+                            .size(75.dp)
+                    )
+                }
+
+                Text(
+                    text = item.htmlUrl,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(0.5.dp)
+                        .background(Color.LightGray)
+                )
+
+            }
+        }
     }
 }
 

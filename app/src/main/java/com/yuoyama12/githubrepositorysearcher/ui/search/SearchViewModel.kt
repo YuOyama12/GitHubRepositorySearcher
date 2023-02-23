@@ -23,7 +23,12 @@ class SearchViewModel @Inject constructor(
     private var _repos = MutableLiveData(Repos())
     val repos: LiveData<Repos> get() = _repos
 
+    private var _onSearch = MutableLiveData(false)
+    val onSearch: LiveData<Boolean> get() = _onSearch
+
     fun loadRepos(query: String) {
+        _onSearch.value = true
+
         viewModelScope.launch {
             githubService.fetchRepos(query).enqueue(
                 object : Callback<Repos> {
@@ -31,14 +36,17 @@ class SearchViewModel @Inject constructor(
                     if (response.isSuccessful) {
                         response.body()?.let { repos ->
                             _repos.value = repos
+                            _onSearch.value = false
                         }
                     } else {
                         val msg = "HTTP error. HTTP status code: ${response.code()}"
                         Log.e(TAG, msg)
+                        _onSearch.value = false
                     }
                 }
                     override fun onFailure(call: Call<Repos>, t: Throwable) {
                         Log.e(TAG, "${t.stackTrace}")
+                        _onSearch.value = false
                     }
                 }
             )
