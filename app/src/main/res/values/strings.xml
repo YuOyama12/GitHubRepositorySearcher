@@ -3,4 +3,7 @@
     <string name="repo_owner_header">Owner</string>
     <string name="repo_title_header">Title</string>
     <string name="no_data_image_description">No Repository</string>
+    <string name="max_page_count_header_for_pagination">of</string>
+    <string name="per_page_header_for_pagination">per page</string>
+    <string name="too_much_results_message">This search took too long to finish; some results cannot be shown.</string>
 </resources>

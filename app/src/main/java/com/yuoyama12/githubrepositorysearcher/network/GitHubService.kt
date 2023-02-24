@@ -9,5 +9,7 @@ interface GitHubService {
     @GET("search/repositories")
     fun fetchRepos(
         @Query("q") query: String,
+        @Query("page") page: String,
+        @Query("per_page") perPage: String
     ): Call<Repos>
 }
