@@ -82,13 +82,14 @@ fun SearchScreen() {
 
         Box(modifier = Modifier.padding(padding)){
             Column(modifier = Modifier.fillMaxWidth()) {
-                Row {
+
+                Row(modifier = Modifier.height(intrinsicSize = IntrinsicSize.Min)
+                ) {
                     OutlinedTextField(
                         value = query,
                         onValueChange = { query = it },
-                        modifier = Modifier
-                            .padding(end = 2.dp)
-                            .weight(0.8f),
+                        modifier = Modifier.weight(0.8f),
+                        placeholder = { Text(text = stringResource(R.string.repository_query_placeholder_text)) },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(
                             onSearch = {
@@ -110,6 +111,7 @@ fun SearchScreen() {
                         modifier = Modifier
                             .align(CenterVertically)
                             .weight(0.2f)
+                            .fillMaxHeight()
                     ) {
                         Icon(
                             imageVector = Icons.Default.Search,

@@ -68,6 +68,8 @@ fun SortingMenu(
                         )
                     }
                 }
+
+                Divider()
             }
         }
     }

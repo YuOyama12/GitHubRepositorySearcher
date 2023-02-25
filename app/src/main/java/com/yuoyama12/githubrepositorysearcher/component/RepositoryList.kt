@@ -2,17 +2,22 @@ package com.yuoyama12.githubrepositorysearcher.component
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.Card
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
@@ -30,10 +35,12 @@ import com.yuoyama12.githubrepositorysearcher.data.Owner
 import com.yuoyama12.githubrepositorysearcher.data.Repo
 import com.yuoyama12.githubrepositorysearcher.data.Repos
 import com.yuoyama12.githubrepositorysearcher.ui.theme.GitHubRepositorySearcherTheme
+import com.yuoyama12.githubrepositorysearcher.ui.theme.starIconColor
 import com.yuoyama12.githubrepositorysearcher.ui.theme.urlTextColor
+import com.yuoyama12.githubrepositorysearcher.ui.theme.watcherIconColor
+import kotlinx.coroutines.launch
 import kotlin.math.pow
 import kotlin.math.round
-
 
 private val startPadding = 6.dp
 @Composable
@@ -43,84 +50,105 @@ fun RepositoryList(
 ) {
     val uriHandler = LocalUriHandler.current
 
+    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(repos) {
+        if (repos.items.isNotEmpty()) {
+            coroutineScope.launch {
+                listState.scrollToItem(0)
+            }
+        }
+    }
+
     LazyColumn(
-        modifier = modifier
+        modifier = modifier,
+        state = listState
     ) {
         items(repos.items) { item ->
-            Box(
-                modifier = modifier
-                    .clickable {
-                        uriHandler.openUri(item.htmlUrl)
-                    }
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
-                    Row {
-                        Column(
-                            modifier = Modifier.weight(0.75f)
-                        ) {
-                            Text(
-                                text = item.name,
-                                modifier = Modifier.padding(vertical = 5.dp),
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-
-                            Text(
-                                text = item.owner.name,
-                                modifier = Modifier.padding(start = startPadding, bottom = 6.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-
-                            Row(modifier = Modifier.padding(start = startPadding)) {
-                                NumericValueWithIcon(
-                                    icon = painterResource(R.drawable.ic_watch_count_24),
-                                    value = item.watchersCount
+            Column(modifier = Modifier.padding(all = 6.dp)) {
+                Card(
+                    modifier = Modifier
+                        .border(BorderStroke(1.dp, Color.LightGray))
+                        .shadow(6.dp)
+                        .clickable {
+                            uriHandler.openUri(item.htmlUrl)
+                        }
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
+                        Row {
+                            Column(
+                                modifier = Modifier.weight(0.75f)
+                            ) {
+                                Text(
+                                    text = item.name,
+                                    modifier = Modifier.padding(vertical = 5.dp),
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
 
-                                Spacer(modifier = Modifier.padding(horizontal = 5.dp))
-
-                                NumericValueWithIcon(
-                                    icon = painterResource(R.drawable.ic_star_count_24),
-                                    value = item.stargazersCount
+                                Text(
+                                    text = item.owner.name,
+                                    modifier = Modifier.padding(start = startPadding, bottom = 6.dp),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
+
+                                Row(modifier = Modifier.padding(start = startPadding)) {
+                                    NumericValueWithIcon(
+                                        icon = painterResource(R.drawable.ic_watch_count_24),
+                                        iconColor = watcherIconColor(),
+                                        value = item.watchersCount
+                                    )
+
+                                    Spacer(modifier = Modifier.padding(horizontal = 5.dp))
+
+                                    NumericValueWithIcon(
+                                        icon = painterResource(R.drawable.ic_star_count_24),
+                                        iconColor = starIconColor(),
+                                        value = item.stargazersCount
+                                    )
+                                }
                             }
+
+                            NetworkImage(
+                                url = item.owner.avatarUrl,
+                                modifier = Modifier
+                                    .weight(0.25f)
+                                    .size(105.dp)
+                                    .border(BorderStroke(0.5.dp, MaterialTheme.colors.primary))
+                            )
                         }
 
-                        NetworkImage(
-                            url = item.owner.avatarUrl,
-                            modifier = Modifier
-                                .weight(0.25f)
-                                .size(105.dp)
+                        Text(
+                            text = item.htmlUrl,
+                            modifier = Modifier.padding(start = startPadding, bottom = 6.dp),
+                            color = urlTextColor(),
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-
-                    Text(
-                        text = item.htmlUrl,
-                        modifier = Modifier.padding(start = startPadding, bottom = 6.dp),
-                        color = urlTextColor(),
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    Spacer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(0.7.dp)
-                            .background(Color.LightGray)
-                    )
-
                 }
+
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(0.6.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-fun NumericValueWithIcon(icon: Painter, value: String) {
+fun NumericValueWithIcon(
+    icon: Painter,
+    iconColor: Color? = null,
+    value: String
+) {
     val alignedValue =
         try {
             value.toInt().alignDigit()
@@ -132,10 +160,18 @@ fun NumericValueWithIcon(icon: Painter, value: String) {
         modifier = Modifier.padding(bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            painter = icon,
-            contentDescription = null,
-        )
+        if (iconColor == null) {
+            Icon(
+                painter = icon,
+                contentDescription = null,
+            )
+        } else {
+            Icon(
+                painter = icon,
+                contentDescription = null,
+                tint = iconColor
+            )
+        }
 
         Spacer(modifier = Modifier.padding(start = 4.dp))
 
