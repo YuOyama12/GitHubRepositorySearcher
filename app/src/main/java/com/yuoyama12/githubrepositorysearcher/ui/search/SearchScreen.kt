@@ -27,10 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuoyama12.githubrepositorysearcher.R
-import com.yuoyama12.githubrepositorysearcher.component.NoDataImage
-import com.yuoyama12.githubrepositorysearcher.component.OnSearchIndicator
-import com.yuoyama12.githubrepositorysearcher.component.PaginationBar
-import com.yuoyama12.githubrepositorysearcher.component.RepositoryList
+import com.yuoyama12.githubrepositorysearcher.component.*
 import com.yuoyama12.githubrepositorysearcher.data.Repos
 import com.yuoyama12.githubrepositorysearcher.ui.theme.GitHubRepositorySearcherTheme
 
@@ -40,6 +37,12 @@ val perPageNumberList = listOf(10, 20, 50)
 @Composable
 fun SearchScreen() {
     val viewModel: SearchViewModel = viewModel()
+    var openSortingMenu by rememberSaveable { mutableStateOf(false) }
+
+    var query by rememberSaveable { mutableStateOf("") }
+    var currentPageNumber by rememberSaveable { mutableStateOf(DEFAULT_PAGE_NUMBER) }
+    var perPageNumber by rememberSaveable { mutableStateOf(perPageNumberList[0]) }
+    val currentSortType by viewModel.currentSortType.observeAsState(SortType.BestMatch)
 
     Scaffold(
         topBar = {
@@ -50,15 +53,26 @@ fun SearchScreen() {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                },
+                actions = {
+                    SortingMenu(
+                        expand = openSortingMenu,
+                        currentSortType = currentSortType,
+                        onIconClicked = { openSortingMenu = !openSortingMenu },
+                        onDismissRequest = { openSortingMenu = false }
+                    ) { sortType ->
+                        viewModel.setSortType(sortType)
+
+                        if (query.trim().isNotEmpty()) {
+                            currentPageNumber = DEFAULT_PAGE_NUMBER
+                            viewModel.loadReposWithCurrentQuery(currentPageNumber, perPageNumber, isPerPageNumChanged = false)
+                        }
+                    }
                 }
             )
         }
     ) { padding ->
         val context = LocalContext.current
-
-        var query by rememberSaveable { mutableStateOf("") }
-        var currentPageNumber by rememberSaveable { mutableStateOf(DEFAULT_PAGE_NUMBER) }
-        var perPageNumber by rememberSaveable { mutableStateOf(perPageNumberList[0]) }
 
         val displayedMaxPageCount by viewModel.displayedMaxPageCount.observeAsState(1)
         val totalCount by viewModel.totalCount.observeAsState(1)

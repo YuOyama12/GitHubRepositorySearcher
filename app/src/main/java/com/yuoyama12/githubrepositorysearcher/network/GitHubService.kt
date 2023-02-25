@@ -10,6 +10,8 @@ interface GitHubService {
     fun fetchRepos(
         @Query("q") query: String,
         @Query("page") page: String,
-        @Query("per_page") perPage: String
+        @Query("per_page") perPage: String,
+        @Query("sort") sort: String,
+        @Query("order") order: String
     ): Call<Repos>
 }

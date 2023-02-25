@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yuoyama12.githubrepositorysearcher.component.SortType
 import com.yuoyama12.githubrepositorysearcher.data.Repos
 import com.yuoyama12.githubrepositorysearcher.network.GitHubService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,9 @@ class SearchViewModel @Inject constructor(
 
     private val _totalCount = MutableLiveData(1)
     val totalCount: LiveData<Int> get() = _totalCount
+
+    private val _currentSortType = MutableLiveData(SortType.BestMatch)
+    val currentSortType: LiveData<SortType> get() = _currentSortType
 
     private val _onSearch = MutableLiveData(false)
     val onSearch: LiveData<Boolean> get() = _onSearch
@@ -62,7 +66,9 @@ class SearchViewModel @Inject constructor(
                 .fetchRepos(
                     _query,
                     pageNumber.toString(),
-                    perPageNumber.toString()
+                    perPageNumber.toString(),
+                    currentSortType.value?.sort ?: "",
+                    currentSortType.value?.order ?: ""
                 ).enqueue(
                     object : Callback<Repos> {
                         override fun onResponse(call: Call<Repos>, response: Response<Repos>) {
@@ -115,6 +121,10 @@ class SearchViewModel @Inject constructor(
 
     fun resetActualMaxPageCount() {
         _totalCount.value = 1
+    }
+
+    fun setSortType(sortType: SortType) {
+        _currentSortType.value = sortType
     }
 
 }
