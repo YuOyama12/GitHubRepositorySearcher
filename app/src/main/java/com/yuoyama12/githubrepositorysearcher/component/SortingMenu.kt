@@ -68,9 +68,9 @@ fun SortingMenu(
                         )
                     }
                 }
-
-                Divider()
             }
+
+            Divider()
         }
     }
 }

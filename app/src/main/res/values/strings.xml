@@ -5,6 +5,7 @@
     <string name="max_page_count_header_for_pagination">of</string>
     <string name="per_page_header_for_pagination">per page</string>
     <string name="too_much_results_message">This search took too long to finish; some results cannot be shown.</string>
+    <string name="no_result_message">we could not find any repositories.</string>
     <string name="repository_sort_type_best_match">Best match</string>
     <string name="repository_sort_type_most_stars">Most stars</string>
     <string name="repository_sort_type_fewest_stars">Fewest stars</string>

@@ -198,14 +198,27 @@ fun SearchScreen() {
             OnSearchIndicator(modifier = Modifier.fillMaxSize())
         }
 
+        if (totalCount == 0) {
+            Toast.makeText(
+                context,
+                stringResource(R.string.no_result_message),
+                Toast.LENGTH_LONG
+            ).show()
+
+            with(viewModel){
+                resetCurrentQuery()
+                resetTotalCount()
+            }
+        }
+
         if (totalCount > MAX_LOADABLE_DATA_AT_ONCE) {
             Toast.makeText(
                 context,
                 stringResource(R.string.too_much_results_message),
-                Toast.LENGTH_LONG)
-                .show()
+                Toast.LENGTH_LONG
+            ).show()
 
-            viewModel.resetActualMaxPageCount()
+            viewModel.resetTotalCount()
         }
 
     }

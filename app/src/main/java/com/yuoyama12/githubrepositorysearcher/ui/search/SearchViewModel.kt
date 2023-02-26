@@ -119,8 +119,12 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun resetActualMaxPageCount() {
+    fun resetTotalCount() {
         _totalCount.value = 1
+    }
+
+    fun resetCurrentQuery() {
+        currentQuery.value = ""
     }
 
     fun setSortType(sortType: SortType) {
